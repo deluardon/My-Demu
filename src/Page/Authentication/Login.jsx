@@ -15,6 +15,7 @@ const Login = () => {
   const [verificationCode, setVerificationCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [resetPasswordSuccess, setResetPasswordSuccess] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false); // Modal state
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -27,6 +28,7 @@ const Login = () => {
     } catch (err) {
       setError("Invalid email or password.");
       console.error(err);
+      setModalOpen(true); // Open modal on error
     } finally {
       setLoading(false);
     }
@@ -39,6 +41,7 @@ const Login = () => {
     } catch (err) {
       setError("Google Sign-in failed.");
       console.error(err);
+      setModalOpen(true); // Open modal on error
     }
   };
 
@@ -53,6 +56,7 @@ const Login = () => {
     } catch (err) {
       setError("Failed to send password reset email.");
       console.error(err);
+      setModalOpen(true); // Open modal on error
     } finally {
       setLoading(false);
     }
@@ -67,8 +71,11 @@ const Login = () => {
     } catch (err) {
       setError("Invalid verification code or password.");
       console.error(err);
+      setModalOpen(true); // Open modal on error
     }
   };
+
+  const closeModal = () => setModalOpen(false); // Close modal
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
@@ -77,7 +84,19 @@ const Login = () => {
           Login to BlogZone
         </h2>
 
-        {error && <p className="text-red-400 text-center">{error}</p>}
+        {error && modalOpen && (
+          <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div className="bg-gray-800 text-white p-6 rounded-lg">
+              <p className="text-red-400 text-center">{error}</p>
+              <button
+                onClick={closeModal}
+                className="mt-4 bg-red-500 px-4 py-2 rounded hover:bg-red-600"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
 
         {!forgotPassword && !resetPasswordSuccess ? (
           <form onSubmit={handleLogin} className="space-y-4">
@@ -110,7 +129,13 @@ const Login = () => {
               className="w-full bg-blue-500 hover:bg-blue-600 py-2 rounded"
               disabled={loading}
             >
-              {loading ? "Logging in..." : "Login"}
+              {loading ? (
+                <div className="flex justify-center">
+                  <div className="w-6 h-6 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+                </div>
+              ) : (
+                "Login"
+              )}
             </button>
 
             <div className="text-center mt-4">
@@ -171,10 +196,11 @@ const Login = () => {
           </form>
         ) : (
           <p className="text-green-400 text-center mt-4">
-            Password reset successful! You can now {" "}
+            Password reset successful! You can now{" "}
             <Link to="/login" className="text-blue-400 hover:underline">
               Login
-            </Link> with your new password.
+            </Link>{" "}
+            with your new password.
           </p>
         )}
       </div>

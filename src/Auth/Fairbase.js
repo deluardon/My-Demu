@@ -1,9 +1,8 @@
-// Import the functions you need from the SDKs you need
+// Fairbase.js (or your Firebase config file)
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getStorage } from "firebase/storage";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getStorage } from "firebase/storage"; // Ensure this is imported
+import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -12,12 +11,20 @@ const firebaseConfig = {
   projectId: "demu-cc026",
   storageBucket: "demu-cc026.firebasestorage.app",
   messagingSenderId: "982738411258",
-  appId: "1:982738411258:web:85515d4a0911886c15b343"
+  appId: "1:982738411258:web:85515d4a0911886c15b343",
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// Get Auth instance
+const auth = getAuth(app);
+
+// Get Firestore instance
+const db = getFirestore(app);
+
+// Get Storage instance
 const storage = getStorage(app);
 
-export { auth, storage };
-const auth = getAuth(app);
+// Export necessary modules
+export { auth, db, storage }; // Ensure storage is exported here

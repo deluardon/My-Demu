@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useState } from "react";
 import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
@@ -7,8 +7,8 @@ import {
   signInWithPopup,
   signOut,
   updateProfile,
-} from 'firebase/auth';
-import { auth } from '../Auth/Fairbase'; // Named import for auth
+} from "firebase/auth";
+import { auth } from "../Auth/Fairbase"; // Ensure correct path
 
 export const AuthContext = createContext(null);
 
@@ -17,60 +17,32 @@ const googleProvider = new GoogleAuthProvider();
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const createUser = (email, password) => {
-    setLoading(true);
-    return createUserWithEmailAndPassword(auth, email, password);
-  };
-
-  const signIn = (email, password) => {
-    setLoading(true);
-    return signInWithEmailAndPassword(auth, email, password);
-  };
-
-  const signInWithGoogle = () => {
-    setLoading(true);
-    return signInWithPopup(auth, googleProvider);
-  };
-
-  const logOut = async () => {
-    setLoading(true);
-    return signOut(auth);
-  };
-
-  const updateUserProfile = (name, photo) => {
-    return updateProfile(auth.currentUser, {
-      displayName: name,
-      photoURL: photo,
-    });
-  };
-
-  // onAuthStateChange
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, currentUser => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      console.log('CurrentUser-->', currentUser);
-      setLoading(false);
+      setLoading(false); // Set loading to false after Firebase completes checking
     });
-    return () => {
-      return unsubscribe();
-    };
+
+    return () => unsubscribe();
   }, []);
 
   const authInfo = {
     user,
-    setUser,
     loading,
-    setLoading,
-    createUser,
-    signIn,
-    signInWithGoogle,
-    logOut,
-    updateUserProfile,
+    error,
+    createUser: (email, password) => createUserWithEmailAndPassword(auth, email, password),
+    signIn: (email, password) => signInWithEmailAndPassword(auth, email, password),
+    signInWithGoogle: () => signInWithPopup(auth, googleProvider),
+    logOut: () => signOut(auth),
+    updateUserProfile: (name, photo) => updateProfile(auth.currentUser, { displayName: name, photoURL: photo }),
   };
 
   return (
-    <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={authInfo}>
+      {!loading ? children : <div className="flex items-center justify-center h-screen text-white">Loading...</div>}
+    </AuthContext.Provider>
   );
 };
 

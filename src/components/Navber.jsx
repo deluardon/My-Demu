@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthContext } from "../Provider/AuthProvider";
 import { FaBars, FaTimes } from "react-icons/fa";
@@ -6,8 +6,24 @@ import { FaBars, FaTimes } from "react-icons/fa";
 const Navbar = () => {
   const { user, logOut } = useContext(AuthContext);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Handle closing the dropdown if clicked outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -27,7 +43,6 @@ const Navbar = () => {
     }
   };
 
-  // Function to check if the current location matches the path
   const isActive = (path) => location.pathname === path ? "text-blue-500" : "hover:text-blue-300";
 
   return (
@@ -58,7 +73,7 @@ const Navbar = () => {
             )}
           </div>
         </div>
-        
+
         {/* Desktop Authentication Buttons */}
         <div className="hidden md:flex items-center space-x-4">
           {!user ? (
@@ -67,11 +82,32 @@ const Navbar = () => {
               <Link to="/register" className="px-4 py-2 bg-green-500 rounded hover:bg-green-600">Register</Link>
             </div>
           ) : (
-            <div className="flex items-center space-x-4">
-              <Link to="/profile">
-                <img src={user.photoURL || "https://via.placeholder.com/40"} alt="Profile" className="w-10 h-10 rounded-full border" />
-              </Link>
-              <button onClick={handleLogout} className="px-4 py-2 bg-red-500 rounded hover:bg-red-600">Logout</button>
+            <div className="relative flex items-center space-x-4">
+              {/* Profile section with image and dropdown */}
+              <div className="relative">
+                <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center space-x-2">
+                  <img src={user.photoURL || "https://via.placeholder.com/40"} alt="Profile" className="w-10 h-10 rounded-full border border-gray-400 hover:border-blue-400" />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isDropdownOpen && (
+                  <div ref={dropdownRef} className="absolute right-0 mt-2 bg-gray-700 text-white rounded-lg shadow-lg w-48 z-50">
+                    <Link to="/profile" className="block px-4 py-2 hover:bg-gray-600" onClick={() => setIsDropdownOpen(false)}>
+                      My Profile
+                    </Link>
+                    <Link to="/my-blogs" className="block px-4 py-2 hover:bg-gray-600" onClick={() => setIsDropdownOpen(false)}>
+                      My Blogs
+                    </Link>
+                    <button onClick={handleLogout} className="block w-full text-left px-4 py-2 bg-red-500 rounded hover:bg-red-600">
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+              {/* Logout button next to the profile */}
+              <button onClick={handleLogout} className="hidden md:block px-4 py-2 bg-red-500 rounded hover:bg-red-600 ml-4">
+                Logout
+              </button>
             </div>
           )}
         </div>
@@ -90,8 +126,8 @@ const Navbar = () => {
           <Link to="/" className={`${isActive("/")}`} onClick={() => setIsMenuOpen(false)}>Home</Link>
           <Link to="/all-blogs" className={`${isActive("/all-blogs")}`} onClick={() => setIsMenuOpen(false)}>All Blogs</Link>
           <Link to="/featured" className={`${isActive("/featured")}`} onClick={() => setIsMenuOpen(false)}>Featured Blogs</Link>
-          <button onClick={() => handleProtectedRoute("/add-blog")} className="hover:text-blue-300">Add Blog</button>
-          
+          <button onClick={() => handleProtectedRoute("/add-blog")} className="hover:text-blue-300" onClick={() => setIsMenuOpen(false)}>Add Blog</button>
+
           <div className="mt-4">
             {!user ? (
               <div className="space-y-4">
@@ -100,10 +136,15 @@ const Navbar = () => {
               </div>
             ) : (
               <div className="flex flex-col items-center space-y-4">
-                <Link to="/profile">
+                <div className="text-center space-y-2">
+                  <Link to="/profile" className="hover:text-blue-300" onClick={() => setIsMenuOpen(false)}>My Profile</Link>
+                  <br />
+                  <Link to="/my-blogs" className="hover:text-blue-300" onClick={() => setIsMenuOpen(false)}>My Blogs</Link>
+                </div>
+                <div className="flex flex-col items-center space-y-2">
                   <img src={user.photoURL || "https://via.placeholder.com/40"} alt="Profile" className="w-10 h-10 rounded-full border" />
-                </Link>
-                <button onClick={handleLogout} className="px-4 py-2 bg-red-500 rounded hover:bg-red-600">Logout</button>
+                  <button onClick={handleLogout} className="px-4 py-2 bg-red-500 rounded hover:bg-red-600">Logout</button>
+                </div>
               </div>
             )}
           </div>

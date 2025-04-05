@@ -1,9 +1,14 @@
+// Profile.jsx
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../Provider/AuthProvider";
 import { updateProfile, reauthenticateWithCredential, EmailAuthProvider, updateEmail, updatePassword } from "firebase/auth";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Firebase Storage methods
-import { auth, storage } from "../Auth/Fairbase";
-// Firebase Storage reference
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { auth, storage } from "../Auth/Fairbase"; // Make sure you're importing storage correctly
+import { FaSpinner } from "react-icons/fa";
+
+// Rest of your code...
+
+
 
 const Profile = () => {
   const { user, setUser, loading, setLoading } = useContext(AuthContext);
@@ -14,6 +19,8 @@ const Profile = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+  const [isLoading, setIsLoading] = useState(false); // Spinner state
 
   useEffect(() => {
     if (user) {
@@ -27,7 +34,7 @@ const Profile = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    setLoading(true);
+    setIsLoading(true); // Show spinner
 
     try {
       let photoUrl = photoURL;
@@ -68,11 +75,12 @@ const Profile = () => {
       });
 
       setSuccess("Profile updated successfully.");
+      setIsModalOpen(true); // Open success modal
     } catch (err) {
       setError("Failed to update profile.");
       console.error(err);
     } finally {
-      setLoading(false);
+      setIsLoading(false); // Hide spinner after operation
     }
   };
 
@@ -98,6 +106,10 @@ const Profile = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
   };
 
   return (
@@ -157,12 +169,30 @@ const Profile = () => {
           <button
             type="submit"
             className="w-full bg-blue-500 hover:bg-blue-600 py-2 rounded"
-            disabled={loading}
+            disabled={isLoading}
           >
-            {loading ? "Updating..." : "Update Profile"}
+            {isLoading ? <FaSpinner className="animate-spin" /> : "Update Profile"}
           </button>
         </form>
       </div>
+
+      {/* Success Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-gray-900 p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-xl text-center text-green-400 mb-4">Profile Updated Successfully</h2>
+            <p className="text-center text-gray-400">Your profile has been updated successfully.</p>
+            <div className="mt-4 text-center">
+              <button
+                onClick={closeModal}
+                className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
